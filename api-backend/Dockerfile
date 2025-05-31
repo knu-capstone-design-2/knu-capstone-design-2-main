@@ -1,5 +1,19 @@
-FROM openjdk:21
+FROM openjdk:21 AS build
+# 작업 디렉토리 설정
 WORKDIR /app
-COPY build/libs/*.jar app.jar
-EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+
+# gradlew 및 gradle 관련 파일 복사
+COPY gradlew .
+COPY gradle gradle
+
+# 전체 프로젝트 복사
+COPY . .
+
+# gradlew 실행 권한 부여
+RUN chmod +x ./gradlew
+
+# 프로젝트 빌드 (build/libs/*.jar 생성됨)
+RUN ./gradlew build -x test --no-daemon
+
+# jar 복사해서 실행 (빌드된 jar 이름 맞춰서 수정!)
+CMD ["java", "-jar", "build/libs/api-backend-0.0.1-SNAPSHOT.jar"]
